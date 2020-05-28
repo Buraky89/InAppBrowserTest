@@ -28,6 +28,10 @@ var app = {
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
         this.receivedEvent('deviceready');
+
+
+        alert("test");
+        cordova.InAppBrowser.open('https://www.haberturk.com', '_blank', 'location=yes');
     },
 
     // Update DOM on a Received Event
