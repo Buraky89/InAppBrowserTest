@@ -686,13 +686,18 @@ static CDVUIInAppBrowser* instance = nil;
     self.spinner.userInteractionEnabled = NO;
     [self.spinner stopAnimating];
 
-    self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
+    self.closeButton = [[UIBarButtonItem alloc] initWithTitle:@"Kapat" style:UIBarButtonItemStyleDone target:self action:@selector(close)];
     self.closeButton.enabled = YES;
+    if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
+      self.closeButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    } else {
+      self.closeButton.tintColor = [UIColor blackColor];
+    }
 
     UIBarButtonItem* flexibleSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
 
     UIBarButtonItem* fixedSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
-    fixedSpaceButton.width = 20;
+    fixedSpaceButton.width = 10;
 
     float toolbarY = toolbarIsAtBottom ? self.view.bounds.size.height - TOOLBAR_HEIGHT : 0.0;
     CGRect toolbarFrame = CGRectMake(0.0, toolbarY, self.view.bounds.size.width, TOOLBAR_HEIGHT);
@@ -701,7 +706,7 @@ static CDVUIInAppBrowser* instance = nil;
     self.toolbar.alpha = 1.000;
     self.toolbar.autoresizesSubviews = YES;
     self.toolbar.autoresizingMask = toolbarIsAtBottom ? (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin) : UIViewAutoresizingFlexibleWidth;
-    self.toolbar.barStyle = UIBarStyleBlackOpaque;
+    self.toolbar.barStyle = UIBarStyleDefault;
     self.toolbar.clearsContextBeforeDrawing = NO;
     self.toolbar.clipsToBounds = NO;
     self.toolbar.contentMode = UIViewContentModeScaleToFill;
@@ -711,6 +716,8 @@ static CDVUIInAppBrowser* instance = nil;
     self.toolbar.userInteractionEnabled = YES;
     if (_browserOptions.toolbarcolor != nil) { // Set toolbar color if user sets it in options
       self.toolbar.barTintColor = [self colorFromHexString:_browserOptions.toolbarcolor];
+    } else {
+      self.toolbar.barTintColor = [UIColor whiteColor];
     }
     if (!_browserOptions.toolbartranslucent) { // Set toolbar translucent to no if user sets it in options
       self.toolbar.translucent = NO;
@@ -748,20 +755,40 @@ static CDVUIInAppBrowser* instance = nil;
     self.addressLabel.textColor = [UIColor colorWithWhite:1.000 alpha:1.000];
     self.addressLabel.userInteractionEnabled = NO;
 
-    NSString* frontArrowString = NSLocalizedString(@"►", nil); // create arrow from Unicode char
-    self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
+    self.forwardButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:(@"right-arrow")] style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
     self.forwardButton.enabled = YES;
     self.forwardButton.imageInsets = UIEdgeInsetsZero;
     if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
       self.forwardButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    } else {
+      self.forwardButton.tintColor = [UIColor blackColor];
     }
 
-    NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
-    self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
+    self.backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:(@"left-arrow")] style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
     self.backButton.enabled = YES;
     self.backButton.imageInsets = UIEdgeInsetsZero;
     if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
       self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    } else {
+      self.backButton.tintColor = [UIColor blackColor];
+    }
+  
+    self.refreshButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:(@"refresh-button")] style:UIBarButtonItemStylePlain target:self action:@selector(reloadWebView:)];
+    self.refreshButton.enabled = YES;
+    self.refreshButton.imageInsets = UIEdgeInsetsZero;
+    if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
+      self.refreshButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    } else {
+      self.refreshButton.tintColor = [UIColor blackColor];
+    }
+  
+    self.shareButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:(@"share-arrow")] style:UIBarButtonItemStylePlain target:self action:@selector(shareAction:)];
+    self.shareButton.enabled = YES;
+    self.shareButton.imageInsets = UIEdgeInsetsZero;
+    if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
+      self.shareButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    } else {
+      self.shareButton.tintColor = [UIColor blackColor];
     }
 
     // Filter out Navigation Buttons if user requests so
@@ -772,15 +799,28 @@ static CDVUIInAppBrowser* instance = nil;
             [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton]];
         }
     } else if (_browserOptions.lefttoright) {
-        [self.toolbar setItems:@[self.backButton, fixedSpaceButton, self.forwardButton, flexibleSpaceButton, self.closeButton]];
+        [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.refreshButton, fixedSpaceButton, self.forwardButton, flexibleSpaceButton, self.shareButton]];
     } else {
-        [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
+        [self.toolbar setItems:@[self.shareButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.refreshButton, fixedSpaceButton, self.forwardButton, flexibleSpaceButton, self.closeButton]];
     }
 
     self.view.backgroundColor = [UIColor grayColor];
     [self.view addSubview:self.toolbar];
     [self.view addSubview:self.addressLabel];
     [self.view addSubview:self.spinner];
+}
+
+-(void)shareAction:(UIBarButtonItem *)sender
+{
+     NSArray* sharedObjects=[NSArray arrayWithObjects:@"sharecontent",  nil];
+     UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:sharedObjects applicationActivities:nil];
+     activityViewController.popoverPresentationController.sourceView = self.view;
+     [self presentViewController:activityViewController animated:YES completion:nil];
+}
+
+-(void)reloadWebView:(UIBarButtonItem *)sender
+{
+    [self.webView reload];
 }
 
 - (void) setWebViewFrame : (CGRect) frame {
