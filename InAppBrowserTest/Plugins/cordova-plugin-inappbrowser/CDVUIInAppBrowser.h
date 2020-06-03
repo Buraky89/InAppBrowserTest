@@ -80,6 +80,8 @@
 
 @property (nonatomic, strong) UIBarButtonItem* refreshButton;
 @property (nonatomic, strong) UIBarButtonItem* shareButton;
+@property (nonatomic, strong) UIView* topBar;
+@property (nonatomic, strong) UILabel *domainLabel;
 @property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
 @property (nonatomic, weak) CDVUIInAppBrowser* navigationDelegate;
 @property (nonatomic) NSURL* currentURL;

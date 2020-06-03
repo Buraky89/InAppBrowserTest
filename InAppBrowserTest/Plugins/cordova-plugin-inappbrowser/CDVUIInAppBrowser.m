@@ -30,10 +30,12 @@
 #define    kInAppBrowserToolbarBarPositionBottom @"bottom"
 #define    kInAppBrowserToolbarBarPositionTop @"top"
 
-#define    TOOLBAR_HEIGHT 44.0
 #define    STATUSBAR_HEIGHT 20.0
 #define    LOCATIONBAR_HEIGHT 21.0
 #define    FOOTER_HEIGHT ((TOOLBAR_HEIGHT) + (LOCATIONBAR_HEIGHT))
+
+#define    TOOLBAR_HEIGHT 44.0
+#define    TOPBAR_HEIGHT 50.0 + STATUSBAR_HEIGHT
 
 #pragma mark CDVUIInAppBrowser
 
@@ -693,9 +695,42 @@ static CDVUIInAppBrowser* instance = nil;
     } else {
       self.closeButton.tintColor = [UIColor blackColor];
     }
-
+  
+    CGRect topBarFrame = CGRectMake(0, 0, self.view.bounds.size.width, TOPBAR_HEIGHT);
+    self.topBar = [[UIToolbar alloc] initWithFrame:topBarFrame];
+    self.topBar.alpha = 1.000;
+    self.topBar.autoresizesSubviews = YES;
+    self.topBar.autoresizingMask = toolbarIsAtBottom ? (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin) : UIViewAutoresizingFlexibleWidth;
+    self.topBar.clearsContextBeforeDrawing = NO;
+    self.topBar.clipsToBounds = NO;
+    self.topBar.contentMode = UIViewContentModeScaleToFill;
+    self.topBar.hidden = NO;
+    self.topBar.multipleTouchEnabled = NO;
+    self.topBar.opaque = NO;
+    self.topBar.userInteractionEnabled = YES;
+    [self.view addSubview:self.topBar];
     UIBarButtonItem* flexibleSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-
+  
+    UIButton *topBackButton = [[UIButton alloc] initWithFrame:CGRectMake(topBarFrame.origin.x + 10, STATUSBAR_HEIGHT + topBarFrame.origin.y + 11, 28, 28)];
+    [topBackButton setImage:[UIImage imageNamed:@"arrow-circular"] forState:normal];
+    [topBackButton addTarget:self action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
+    [self.topBar addSubview:topBackButton];
+  
+    UIView *verticalSeperator = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(topBackButton.frame) + 10, STATUSBAR_HEIGHT + topBarFrame.origin.y + 11, 1, 28)];
+    [verticalSeperator setBackgroundColor:[UIColor lightGrayColor]];
+    [self.topBar addSubview:verticalSeperator];
+  
+    UILabel *infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(verticalSeperator.frame) + 15, STATUSBAR_HEIGHT + topBarFrame.origin.y + 9, topBarFrame.size.width - 10 - topBackButton.frame.size.width - 10 - verticalSeperator.frame.size.width - 15, 15)];
+    [infoLabel setText:@"DH Reaksiyon"];
+    [infoLabel setFont:[UIFont systemFontOfSize:12]];
+    [infoLabel setTextColor:[UIColor lightGrayColor]];
+    [self.topBar addSubview:infoLabel];
+    
+    self.domainLabel = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(verticalSeperator.frame) + 15, STATUSBAR_HEIGHT + topBarFrame.origin.y + 9 + infoLabel.frame.size.height, topBarFrame.size.width - 10 - topBackButton.frame.size.width - 10 - verticalSeperator.frame.size.width - 15, 15)];
+    [self.domainLabel setFont:[UIFont boldSystemFontOfSize:12]];
+    [self.domainLabel setTextColor:[UIColor darkGrayColor]];
+    [self.topBar addSubview:self.domainLabel];
+  
     UIBarButtonItem* fixedSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     fixedSpaceButton.width = 10;
 
@@ -1120,7 +1155,8 @@ static CDVUIInAppBrowser* instance = nil;
     if (isPDF) {
         [CDVUserAgentUtil setUserAgent:_prevUserAgent lockToken:_userAgentLockToken];
     }
-
+  
+    [self.domainLabel setText: [currentURL host]];
     [self.navigationDelegate webViewDidFinishLoad:theWebView];
 }
 
